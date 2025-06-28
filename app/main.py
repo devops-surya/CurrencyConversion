@@ -1,5 +1,6 @@
 """
-Currency Converter Microservice using FastAPI and exchangerate.host API
+Currency Converter Microservice using FastAPI and exchangerate.host API.
+Provides both a web form and REST API for currency conversion.
 """
 
 from fastapi import FastAPI, Request, Form
@@ -15,19 +16,26 @@ templates = Jinja2Templates(directory="app/templates")
 # ✅ Mandatory API Key (Set your key here)
 API_KEY = "c63ad6ca7000cd4270b5d7e250569d4a"  # Replace with your exchangerate.host API key
 
+
 @app.get("/", response_class=HTMLResponse)
 async def get_form(request: Request):
     """
-    Serve the currency conversion form page.
+    Serve the HTML currency conversion form.
     """
     currencies = ["USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD", "CHF"]
-    return templates.TemplateResponse("index.html", {"request": request, "currencies": currencies})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "currencies": currencies}
+    )
+
 
 @app.get("/convert", response_class=HTMLResponse)
 async def convert_api(from_: str, to: str, amount: float):
     """
-    REST API endpoint: Converts currency using query parameters.
-    Example: /convert?from_=USD&to=EUR&amount=100
+    REST API endpoint for currency conversion using query parameters.
+
+    Example:
+    /convert?from_=USD&to=EUR&amount=100
     """
     api_url = "https://api.exchangerate.host/convert"
     params = {
@@ -39,14 +47,21 @@ async def convert_api(from_: str, to: str, amount: float):
 
     try:
         response = requests.get(api_url, params=params, timeout=5)
+        response.raise_for_status()
         data = response.json()
 
-        if response.status_code != 200 or not data.get("success"):
-            error_info = data.get("error", {}).get("info", "API error or missing data")
+        if not data.get("success"):
+            error_info = data.get("error", {}).get(
+                "info", "API error or missing data"
+            )
             return {"error": error_info}
 
         converted_amount = data.get("result")
-        rate = converted_amount / amount if amount != 0 else None
+        rate = (
+            converted_amount / amount
+            if amount != 0 and converted_amount is not None
+            else None
+        )
 
         return {
             "from": from_,
@@ -58,14 +73,19 @@ async def convert_api(from_: str, to: str, amount: float):
 
     except requests.exceptions.RequestException as req_error:
         return {"error": f"Request error: {str(req_error)}"}
-    except Exception as e:
-        return {"error": f"Unexpected error: {str(e)}"}
+    except ValueError as json_error:
+        return {"error": f"JSON decoding error: {str(json_error)}"}
+
 
 @app.post("/convert-form", response_class=HTMLResponse)
-async def convert_form(request: Request, from_currency: str = Form(...),
-                       to_currency: str = Form(...), amount: float = Form(...)):
+async def convert_form(
+    request: Request,
+    from_currency: str = Form(...),
+    to_currency: str = Form(...),
+    amount: float = Form(...)
+):
     """
-    Handles HTML form submission and shows conversion result.
+    Handles HTML form submission for currency conversion and renders result page.
     """
     api_url = "https://api.exchangerate.host/convert"
     params = {
@@ -77,16 +97,24 @@ async def convert_form(request: Request, from_currency: str = Form(...),
 
     try:
         response = requests.get(api_url, params=params, timeout=5)
+        response.raise_for_status()
         data = response.json()
 
-        if response.status_code != 200 or not data.get("success"):
-            error_message = data.get("error", {}).get("info", "API error or missing data")
+        if not data.get("success"):
+            error_message = data.get("error", {}).get(
+                "info", "API error or missing data"
+            )
             return templates.TemplateResponse(
-                "result.html", {"request": request, "error": error_message}
+                "result.html",
+                {"request": request, "error": error_message}
             )
 
         converted_amount = data.get("result")
-        rate = converted_amount / amount if amount != 0 else None
+        rate = (
+            converted_amount / amount
+            if amount != 0 and converted_amount is not None
+            else None
+        )
 
         return templates.TemplateResponse(
             "result.html",
@@ -103,11 +131,17 @@ async def convert_form(request: Request, from_currency: str = Form(...),
 
     except requests.exceptions.RequestException as req_error:
         return templates.TemplateResponse(
-            "result.html", {"request": request, "error": f"Request error: {str(req_error)}"}
+            "result.html",
+            {
+                "request": request,
+                "error": f"Request error: {str(req_error)}"
+            }
         )
-    except Exception as e:
+    except ValueError as json_error:
         return templates.TemplateResponse(
-            "result.html", {"request": request, "error": f"Unexpected error: {str(e)}"}
+            "result.html",
+            {
+                "request": request,
+                "error": f"JSON decoding error: {str(json_error)}"
+            }
         )
-x=1
-y=2y=2

@@ -3,5 +3,9 @@ repos:
     rev: v3.0.0
     hooks:
       - id: pylint
-        args: [app/]
+        args: ["app/"]
+        additional_dependencies:
+          - fastapi
+          - requests
+          - jinja2
 
