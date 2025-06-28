@@ -289,7 +289,7 @@ trivy image --severity CRITICAL,HIGH currency-converter-app
 
 ## ✅ License:
 
-For educational/demo use only.
+For  educational/demo use only.
 
 ---
 
