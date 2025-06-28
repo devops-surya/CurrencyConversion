@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_NAME: tejamvs/currencyconversion/currency-converter-app
-
+      IMAGE_NAME: tejamvs/currencyconversion
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
