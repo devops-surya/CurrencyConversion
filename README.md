@@ -1,4 +1,3 @@
-
 This project is a simple **Currency Conversion Microservice** built using **FastAPI** and **Jinja2 templates**, using the **exchangerate.host API** (requires API key).
 
 It provides both:
@@ -28,6 +27,7 @@ currencyconversion/
 │       ├── index.html       # Currency conversion input form
 │       └── result.html      # Displays conversion result
 ├── requirements.txt         # Python package dependencies
+├── Dockerfile               # Docker container build file
 └── README.md                # Project documentation
 ```
 
@@ -35,65 +35,46 @@ currencyconversion/
 
 ## ✅ Prerequisites
 
-* **Python 3.8+**
-* **A valid API key from [exchangerate.host](https://exchangerate.host/)**
+* Python 3.8+
+* A valid API key from [exchangerate.host](https://exchangerate.host/)
 
 ---
 
 ## ✅ Setup Instructions (Run Locally)
 
-### Step 1: Clone the repository or Download the code
+Clone the repository or download the source code:
 
 ```bash
 git clone <your-repo-url>
 cd currencyconversion
 ```
 
----
-
-### Step 2: Create Python Virtual Environment
+Create a Python virtual environment:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
----
-
-### Step 3: Install Required Packages
+Install required Python packages:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Or manually:
-
-```bash
-pip install fastapi uvicorn jinja2 requests
-```
-
----
-
-### Step 4: Configure Your API Key in `main.py`
-
-In your **`app/main.py`**, look for this line at the top:
+Open `app/main.py` and set your API key:
 
 ```python
 API_KEY = "<YOUR_API_KEY_HERE>"
 ```
 
-➡️ Replace `<YOUR_API_KEY_HERE>` with your **actual API key** from exchangerate.host.
 Example:
 
 ```python
 API_KEY = "c63ad6ca7000cd4270b5d7e250569d4a"
 ```
 
-This API key will be used by both the **form-based UI** and the **REST API** to fetch exchange rates.
-
----
-
-### Step 5: Run the FastAPI Application
+Run the FastAPI application locally:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -103,39 +84,16 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## ✅ Access the Application
 
-### ✅ Web UI (HTML Form):
+**Web UI (HTML Form):**
 
 ```
 http://localhost:8000/
 ```
 
-* Fill **From Currency**
-* Fill **To Currency**
-* Fill **Amount**
-* Click Convert
-
-You’ll see the converted amount on the result page.
-
----
-
-### ✅ REST API Endpoint:
-
-Example call:
+**REST API Endpoint Example:**
 
 ```
 http://localhost:8000/convert?from_=USD&to=EUR&amount=100
-```
-
-Example JSON Response:
-
-```json
-{
-  "from": "USD",
-  "to": "EUR",
-  "amount": 100,
-  "exchange_rate": 0.85,
-  "converted_amount": 85.0
-}
 ```
 
 ---
@@ -152,17 +110,80 @@ Example JSON Response:
 
 ---
 
-## ✅ Deployment Notes (For Remote Server)
+## ✅ Running with Docker
 
-If running on a cloud server (like AWS EC2):
+Build the Docker image:
 
-* ✅ Ensure **port 8000** is open in your firewall/security group.
-* ✅ Use `--host 0.0.0.0` to listen on all network interfaces.
+```bash
+docker build -t currency-converter-app .
+```
 
-Access it via:
+Run the container:
+
+```bash
+docker run -d -p 8000:8000 currency-converter-app
+```
+
+Verify container status:
+
+```bash
+docker ps
+```
+
+You should see something like:
+
+```
+CONTAINER ID   IMAGE                  PORTS                    STATUS
+abc123         currency-converter-app   0.0.0.0:8000->8000/tcp   Up
+```
+
+Access the application (while running locally):
+
+```
+http://localhost:8000/
+```
+
+Example REST API:
+
+```
+http://localhost:8000/convert?from_=USD&to=EUR&amount=100
+```
+
+---
+
+## ✅ Deploying on a Cloud Server (AWS EC2 Example)
+
+Ensure Docker is installed and running on your cloud server.
+
+Open port 8000 in your cloud provider's firewall/security group.
+
+Example Inbound Rule:
+
+| Type       | Protocol | Port Range | Source    |
+| ---------- | -------- | ---------- | --------- |
+| Custom TCP | TCP      | 8000       | 0.0.0.0/0 |
+
+Run your Docker container on the server:
+
+```bash
+docker run -d -p 8000:8000 currency-converter-app
+```
+
+Access the app from your browser:
 
 ```
 http://<your-server-public-ip>:8000/
+```
+
+(Replace `<your-server-public-ip>` with your cloud server’s public IP)
+
+---
+
+## ✅ Stopping the Docker Container (Optional Cleanup)
+
+```bash
+docker ps  # Get container ID
+docker stop <container_id>
 ```
 
 ---
@@ -172,5 +193,4 @@ http://<your-server-public-ip>:8000/
 This project is for educational and demonstration purposes only.
 
 ---
-
 
