@@ -173,5 +173,4 @@ This project is for educational and demonstration purposes only.
 
 ---
 
-Let me know if you want me to generate your **requirements.txt** or **Dockerfile** next ✅
 
