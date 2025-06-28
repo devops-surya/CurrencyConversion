@@ -71,7 +71,7 @@ API_KEY = "<YOUR_API_KEY_HERE>"
 Example:
 
 ```python
-API_KEY = "c63ad6ca7000cd4270b5d7e250569d4a"
+API_KEY = "XXXXXXXXXXXXXXXXXXXXXX"
 ```
 
 Run the FastAPI application locally:
