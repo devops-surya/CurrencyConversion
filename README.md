@@ -1,13 +1,3 @@
-Sure Teja! Below is a **professional `README.md`** that:
-
-✅ Assumes **API key is now mandatory**
-✅ Shows **exact location in `main.py` where to put your API key**
-✅ Removed optional future enhancements section
-✅ Focused fully on local running with API key requirement
-
----
-
-# 📖 Currency Converter Microservice – FastAPI Version (With Mandatory API Key)
 
 This project is a simple **Currency Conversion Microservice** built using **FastAPI** and **Jinja2 templates**, using the **exchangerate.host API** (requires API key).
 
