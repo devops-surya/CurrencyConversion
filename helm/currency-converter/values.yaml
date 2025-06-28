@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  repository: tejamvs/currencyconversion  # Replace with your Docker Hub repo name
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8000
+  nodePort: 30080   # External port accessible on node's IP
+
+resources: {}
+

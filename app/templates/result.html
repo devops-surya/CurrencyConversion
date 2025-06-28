@@ -4,8 +4,17 @@
     <title>Conversion Result</title>
 </head>
 <body>
-    <h2>Conversion Result</h2>
-    <p>{{ result }}</p>
+    <h1>Conversion Result</h1>
+
+    {% if error %}
+        <p style="color: red;">API Error: {{ error }}</p>
+    {% else %}
+        <p><strong>{{ amount }} {{ from_currency }}</strong> is equal to:</p>
+        <h2>{{ converted_amount }} {{ to_currency }}</h2>
+        <p>Exchange Rate Used: 1 {{ from_currency }} = {{ rate }} {{ to_currency }}</p>
+    {% endif %}
+
+    <br>
     <a href="/">Convert Another</a>
 </body>
 </html>
