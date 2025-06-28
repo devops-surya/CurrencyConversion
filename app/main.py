@@ -109,4 +109,5 @@ async def convert_form(request: Request, from_currency: str = Form(...),
         return templates.TemplateResponse(
             "result.html", {"request": request, "error": f"Unexpected error: {str(e)}"}
         )
+x=1
 
