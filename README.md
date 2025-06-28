@@ -276,17 +276,6 @@ trivy image --severity CRITICAL,HIGH currency-converter-app
 
 ---
 
-## ✅ Summary Links:
-
-| Purpose          | Link                                                               |
-| ---------------- | ------------------------------------------------------------------ |
-| Local UI         | [http://localhost:8000/](http://localhost:8000/)                   |
-| AWS EC2 UI       | http\://<ec2-public-ip>:8000/                                      |
-| Local API Call   | [http://localhost:8000/convert](http://localhost:8000/convert)?... |
-| AWS EC2 API Call | http\://<ec2-public-ip>:8000/convert?                              |
-
----
-
 ## ✅ License:
 
 For  educational/demo use only.
