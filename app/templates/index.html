@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Currency Converter</title>
+</head>
+<body>
+    <h2>Currency Converter</h2>
+    <form action="/convert-form" method="post">
+        <label>From Currency:</label>
+        <select name="from_currency">
+            {% for currency in currencies %}
+                <option>{{currency}}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>To Currency:</label>
+        <select name="to_currency">
+            {% for currency in currencies %}
+                <option>{{currency}}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Amount:</label>
+        <input type="number" step="any" name="amount" required><br><br>
+
+        <input type="submit" value="Convert">
+    </form>
+</body>
+</html>
+
