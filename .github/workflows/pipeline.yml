@@ -1,33 +1,41 @@
-name: CI pipeline for Docker build & push
+name: Docker CI Build with Trivy Scan
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    branches:
+      - main
 
 jobs:
-  build-and-push:
+  build-and-scan:
     runs-on: ubuntu-latest
 
-    env:
-      IMAGE_NAME: tejamvs/currencyconversion
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker Image
-        run: docker build -t $IMAGE_NAME .
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest .
 
-      - name: Push Docker Image to Docker Hub
-        run: docker push $IMAGE_NAME
+      - name: Run Trivy vulnerability scan (fail on High and Critical)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+          format: 'table'
 
+      - name: Push Docker image to Docker Hub (only if Trivy passed)
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest

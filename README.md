@@ -1,35 +1,48 @@
+---
 
-This project is a simple **Currency Conversion Microservice** built using **FastAPI**, **Jinja2 templates**, and the **exchangerate.host API** (requires API key).
+# 📦 Currency Conversion Microservice 🚀
+
+A simple **Currency Conversion Microservice** built using **FastAPI**, **Jinja2 templates**, and the **exchangerate.host API**.
 
 ---
 
 ## ✅ Features
 
-✅ Web UI form for currency conversion
-✅ REST API endpoint for programmatic conversion
-✅ Real-time currency conversion using exchangerate.host
-✅ Mandatory API Key authentication
-✅ Error handling for API failures and user input issues
+✅ Web UI for currency conversion
+✅ REST API for programmatic access
+✅ Real-time conversion using exchangerate.host
+✅ API key-based authentication
+✅ Error handling for API failures
 ✅ Docker containerization
-✅ GitHub Actions CI for Docker build and push
+✅ CI using GitHub Actions (Only CI, No CD)
+✅ Trivy vulnerability scanning for container image
 
 ---
 
-## ✅ Project Structure
+## ✅ Folder Structure (with File Descriptions)
 
 ```
-currencyconversion/
+CurrencyConversion/
+├── Dockerfile                        # Docker build file for creating app container
+├── README.md                          # This documentation file
 ├── app/
-│   ├── main.py              # FastAPI main application
-│   └── templates/           # HTML templates
-│       ├── index.html       # Currency conversion input form
-│       └── result.html      # Displays conversion result
-├── requirements.txt         # Python package dependencies
-├── Dockerfile               # Docker container build file
+│   ├── main.py                        # FastAPI application code
+│   └── templates/
+│       ├── index.html                 # HTML form for input (currency conversion form)
+│       └── result.html                # HTML template to display conversion results
+├── helm/
+│   └── currency-converter/
+│       ├── Chart.yaml                 # Helm chart metadata
+│       ├── README.md                  # Instructions for Helm deployment
+│       ├── templates/
+│       │   ├── deployment.yaml        # Kubernetes deployment spec
+│       │   └── service.yaml           # Kubernetes service spec
+│       └── values.yaml                # Default Helm values
+├── requirements.txt                   # Python production dependencies
+├── requirements-dev.txt               # Python dev tools (like pylint)
 └── .github/
     └── workflows/
-        └── pipeline.yml     # GitHub Actions CI pipeline for Docker build and push
-└── README.md                # Project documentation
+        └── pipeline.yml               # GitHub Actions CI pipeline for Docker build and push
 ```
 
 ---
@@ -37,201 +50,236 @@ currencyconversion/
 ## ✅ Prerequisites
 
 * Python 3.8+
-* A valid **API key from** [exchangerate.host](https://exchangerate.host/)
-* Docker installed (if using Docker)
-* GitHub account (for GitHub Actions)
+* Docker installed
+* API key from [exchangerate.host](https://exchangerate.host/)
+* Trivy installed (for scanning Docker images)
+* GitHub account for CI
+* **(For AWS EC2)**: Public IP of the EC2 instance and **Port 8000 opened in Security Group**
 
 ---
 
 ## ✅ Running Locally (Without Docker)
 
-Clone the repository:
+### 1. Clone the repo:
 
 ```bash
 git clone <your-repo-url>
-cd currencyconversion
+cd CurrencyConversion
 ```
 
-Create and activate Python virtual environment:
+### 2. Create Python virtual environment:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-Install dependencies:
+### 3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Set your API key:
+### 4. Set your API key:
 
-Open `app/main.py` and replace:
-
-```python
-API_KEY = "<YOUR_API_KEY_HERE>"
-```
-
-with your actual API key, for example:
+Edit `app/main.py`:
 
 ```python
-API_KEY = "xxxxxxxx"
+API_KEY = "<YOUR_API_KEY>"
 ```
 
-Run the FastAPI server:
+### 5. Run FastAPI server:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Access the app locally:
+### 6. Access locally:
 
 * Web UI: [http://localhost:8000/](http://localhost:8000/)
 * API: [http://localhost:8000/convert?from\_=USD\&to=EUR\&amount=100](http://localhost:8000/convert?from_=USD&to=EUR&amount=100)
 
 ---
 
-## ✅ Running with Docker
+## ✅ Running on AWS EC2 (Cloud Server)
 
-Build the Docker image:
+> **Steps for deploying and accessing on AWS EC2:**
+
+### 1. SSH into EC2:
 
 ```bash
+ssh ec2-user@<your-ec2-public-ip>
+```
+
+### 2. Install Docker on Ubuntu (using APT):
+
+```bash
+# Update existing packages
+sudo apt update
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg lsb-release
+
+# Add Docker GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Add Docker repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+# Allow your user to run docker (optional)
+sudo usermod -aG docker ubuntu
+```
+
+> 🔔 **Logout and login again** for the group change to take effect.
+
+---
+
+Log out and log back in for Docker group changes to take effect.
+
+---
+
+### 3. Open Port 8000 in AWS Security Group:
+
+* Go to AWS EC2 Console → **Your EC2 Instance → Security → Security Groups**
+* Edit **Inbound Rules**
+* **Add Rule:**
+  Type: Custom TCP
+  Port: `8000`
+  Source: Anywhere (0.0.0.0/0) or Your IP
+
+---
+
+### 4. Build Docker Image **(Important: Run from folder where Dockerfile exists):**
+
+```bash
+cd ~/CurrencyConversion  # Or wherever you cloned the project
 docker build -t currency-converter-app .
 ```
 
-Run the Docker container:
+---
+
+### 5. Run Docker Container:
 
 ```bash
 docker run -d -p 8000:8000 currency-converter-app
 ```
-
-Check if container is running:
-
-```bash
-docker ps
-```
-
-Access via:
-
-* Web UI: [http://localhost:8000/](http://localhost:8000/)
-* API: [http://localhost:8000/convert?from\_=USD\&to=EUR\&amount=100](http://localhost:8000/convert?from_=USD&to=EUR&amount=100)
 
 ---
 
-## ✅ Running on a Cloud Server (Example: AWS EC2)
-
-If you run this on a cloud server like AWS:
-
-* Ensure **Docker is installed** on the server
-* Open port `8000` in your cloud firewall (Security Group for AWS EC2)
-* Run the container on the server:
-
-```bash
-docker run -d -p 8000:8000 currency-converter-app
-```
-
-Access from your browser:
+### 6. Access from your browser:
 
 ```
 http://<your-ec2-public-ip>:8000/
 ```
 
----
-
-## ✅ CI Pipeline using GitHub Actions (Only CI – No CD)
-
-We use **GitHub Actions CI pipeline** to:
-
-✅ Build the Docker image
-✅ Login to Docker Hub
-✅ Push the Docker image to Docker Hub
-
-There is **no CD / deployment step inside the GitHub pipeline**.
-
----
-
-### 📌 Pipeline File Location:
+Example:
 
 ```
-.github/workflows/pipeline.yml
+http://3.110.XXX.XXX:8000/
 ```
 
----
+> Replace with your actual EC2 Public IP.
 
-### 📌 GitHub Secrets Setup (Mandatory Before Pipeline Run):
+You can access both:
 
-Go to your repo → **Settings → Secrets → Actions → New repository secret**
-
-Add these two secrets:
-
-| Secret Name         | Example Value                                            |
-| ------------------- | -------------------------------------------------------- |
-| DOCKERHUB\_USERNAME | Your Docker Hub username                                 |
-| DOCKERHUB\_TOKEN    | Your Docker Hub token (from Docker Hub Account Settings) |
+* Web UI: `http://<public-ip>:8000/`
+* API: `http://<public-ip>:8000/convert?from_=USD&to=INR&amount=100`
 
 ---
 
-### 📌 Triggering the CI Pipeline Manually:
+## ✅ Docker Image Security Scan with Trivy 🛡️
 
-1. Go to your GitHub repository → **Actions tab**
-2. Find workflow named:
-   **"Docker CI Build and Push"**
-3. Click: **Run workflow**
-4. Select branch (e.g., `main`)
-5. Click: **Run workflow**
+### 1. Install Trivy:
 
-The job will **checkout code → build Docker → push Docker image to Docker Hub**
-
----
-
-### 📌 What Happens in CI Pipeline?
-
-| Step                | Purpose                           |
-| ------------------- | --------------------------------- |
-| Checkout code       | Pulls source from GitHub          |
-| Docker buildx setup | Prepares Docker build environment |
-| Docker Hub login    | Authenticates to Docker Hub       |
-| Docker build        | Builds Docker image               |
-| Docker push         | Pushes Docker image to Docker Hub |
-
----
-
-### 📌 Where Your Docker Image Goes After CI?
-
-Docker Hub Repo:
-
-```
-https://hub.docker.com/r/<YOUR_USERNAME>/currencyconversion
-```
-
-(For example: `https://hub.docker.com/r/tejamvs/currencyconversion`)
-
----
-
-## ✅ How the Code Works
-
-| Layer         | File                        | Purpose                                      |
-| ------------- | --------------------------- | -------------------------------------------- |
-| Web Frontend  | `index.html`                | HTML form for user input                     |
-| FastAPI Route | `main.py → "/"`             | Serves the input form                        |
-| FastAPI Route | `main.py → "/convert-form"` | Handles form submission and conversion       |
-| REST API      | `main.py → "/convert"`      | Converts currency via GET params             |
-| External API  | exchangerate.host           | Provides live currency rates (needs API key) |
-
----
-
-## ✅ Stopping Docker Container (Optional Cleanup)
+On EC2:
 
 ```bash
-docker ps        # Get container ID
-docker stop <ID> # Stop container
+curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
 ```
 
 ---
 
-## ✅ License
+### 2. Scan Image (Critical & High Only):
 
-This project is for educational and demonstration purposes only.
+```bash
+trivy image --severity CRITICAL,HIGH currency-converter-app
+```
+
+---
+
+### 3. How to Reduce Trivy Issues:
+
+| Problem Type       | What You Should Do                              |
+| ------------------ | ----------------------------------------------- |
+| Critical/High CVEs | Use `python:3.12-slim` or `alpine` base         |
+| Python CVEs        | Upgrade `pip`, `setuptools`, and dependencies   |
+| OS Package CVEs    | Keep `apt` packages minimal and update packages |
+| Old Dependencies   | Update your `requirements.txt` versions         |
+
+---
+
+### ✅ Recommended Dockerfile Hardening Example:
+
+```dockerfile
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y build-essential gcc
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+WORKDIR /app
+COPY . .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+After editing, **rebuild and rescan**:
+
+```bash
+docker build -t currency-converter-app .
+trivy image --severity CRITICAL,HIGH currency-converter-app
+```
+
+---
+
+## ✅ CI Pipeline using GitHub Actions
+
+| Stage        | Purpose               |
+| ------------ | --------------------- |
+| Checkout     | Get code from GitHub  |
+| Docker Build | Build container image |
+| Docker Push  | Push to Docker Hub    |
+
+---
+
+### GitHub Secrets required:
+
+| Secret Name         | Purpose                  |
+| ------------------- | ------------------------ |
+| DOCKERHUB\_USERNAME | Your Docker Hub Username |
+| DOCKERHUB\_TOKEN    | Docker Hub Token         |
+
+---
+
+### Trigger CI Manually:
+
+1. Go to **GitHub Actions → Docker CI Build and Push**
+2. Click **Run Workflow**
+3. Select branch → **Run**
+
+---
+
+## ✅ License:
+
+For  educational/demo use only.
+
+---
 
 
