@@ -1,49 +1,41 @@
-name: Docker Build, Trivy Scan, and Push
+name: Docker CI Build with Trivy Scan
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  build-scan-push:
+  build-and-scan:
     runs-on: ubuntu-latest
 
     steps:
-      # ✅ Step 1: Checkout source code
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # ✅ Step 2: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ✅ Step 3: Set up Docker Hub credentials
-      - name: Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ✅ Step 4: Build Docker image
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest .
-
-      # ✅ Step 5: Install Trivy vulnerability scanner
-      - name: Install Trivy
+      - name: Build Docker image
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install -y trivy
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest .
 
-      # ✅ Step 6: Trivy Image Scan (Fail if any HIGH or CRITICAL vulnerabilities)
-      - name: Run Trivy Vulnerability Scan
-        run: trivy image --severity HIGH,CRITICAL --exit-code 1 ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest
+      - name: Run Trivy vulnerability scan (fail on High and Critical)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+          format: 'table'
 
-      # ✅ Step 7: Push Docker image to Docker Hub (ONLY IF Trivy passed)
-      - name: Push Docker Image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest
+      - name: Push Docker image to Docker Hub (only if Trivy passed)
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/currency-converter-app:latest
