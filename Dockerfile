@@ -1,6 +1,6 @@
 # Dockerfile
 
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 # Create appuser (non-root)
 RUN adduser --disabled-password --gecos '' appuser
