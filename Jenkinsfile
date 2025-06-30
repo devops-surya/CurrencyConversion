@@ -21,6 +21,17 @@ pipeline {
             }
         }
 
+        stage('Trivy Image Scan') {
+            steps {
+                script {
+                    echo 'Running Trivy vulnerability scan...'
+                    sh '''
+                        trivy image --severity CRITICAL,HIGH --exit-code 1 $IMAGE_NAME
+                    '''
+                }
+            }
+        }
+
         stage('Docker Login and Push') {
             steps {
                 script {
