@@ -15,7 +15,7 @@ A FastAPI-based **Currency Conversion Microservice**, containerized using **Dock
 5. Infrastructure Deployment with Terraform + Helm
 6. Jenkinsfile Overview (Jenkins CI Pipeline)
 
-   * 6.1 Jenkins Shared Library Example (For Visuality / Demo Only)
+   * 6.1 Jenkins Shared Library Example 
 
 ---
 
