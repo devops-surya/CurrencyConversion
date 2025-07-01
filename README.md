@@ -2,17 +2,20 @@
 
 # 📦 Currency Conversion Microservice 🚀
 
-A FastAPI-based **Currency Conversion Microservice**, containerized using **Docker**, deployed on **AWS EKS (us-east-1)** using **Helm**, with infrastructure provisioned via **Terraform**, and CI pipeline using **GitHub Actions**.
+A FastAPI-based **Currency Conversion Microservice**, containerized using **Docker**, deployed on **AWS EKS (us-east-1)** using **Helm**, with infrastructure provisioned via **Terraform**, CI pipeline using **GitHub Actions**, and a **Jenkins CI pipeline with an example of Jenkins Shared Library (for visibility placed inside the same repo)**.
 
 ---
 
 ## ✅ Table of Contents
 
-1. [Microservice Manual Deployment (Local Python)](#1-microservice-manual-deployment-local-python)
-2. [Dockerfile and Docker Build](#2-dockerfile-and-docker-build)
-3. [CI/CD using GitHub Actions](#3-cicd-using-github-actions)
-4. [Helm Chart Deployment](#4-helm-chart-deployment)
-5. [Infrastructure Deployment with Terraform + Helm](#5-infrastructure-deployment-with-terraform--helm)
+1. Microservice Manual Deployment (Local Python)
+2. Dockerfile and Docker Build
+3. CI/CD using GitHub Actions
+4. Helm Chart Information
+5. Infrastructure Deployment with Terraform + Helm
+6. Jenkinsfile Overview (Jenkins CI Pipeline)
+
+   * 6.1 Jenkins Shared Library Example (For Visuality / Demo Only)
 
 ---
 
@@ -41,17 +44,13 @@ CurrencyConversion/
 │       └── result.html          # HTML Conversion Result
 ├── requirements.txt              # Production dependencies
 ├── requirements-dev.txt          # Development tools (pylint etc.)
-├── .pre-commit-config.yaml       # Pre-commit hooks to enforce code quality
+├── .pre-commit-config.yaml       # Pre-commit hooks for code quality
 └── README.md
 ```
 
 ---
 
-### 📌 Pre-commit Hook:
-
-This project uses **`.pre-commit-config.yaml`** to run **code formatters and pylint checks automatically before every commit**.
-
-**Setup Pre-commit Locally:**
+### 📌 Pre-commit Hook Setup:
 
 ```bash
 pip install pre-commit
@@ -68,7 +67,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Set API key inside `app/main.py`:
+Set your API key inside `app/main.py`:
 
 ```python
 API_KEY = "<YOUR_API_KEY>"
@@ -82,8 +81,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 Access:
 
-* Web UI: [http://localhost:8000/](http://localhost:8000/)
-* API: [http://localhost:8000/convert?from\_=USD\&to=INR\&amount=100](http://localhost:8000/convert?from_=USD&to=INR&amount=100)
+✅ If running on AWS EC2 or any cloud server:
+
+```
+http://<Your-Public-IP>:8000/
+```
 
 ---
 
@@ -117,7 +119,7 @@ docker build -t currency-converter-app .
 
 ---
 
-### 📌 Run Docker Container Locally:
+### 📌 Run Docker Container:
 
 ```bash
 docker run -d -p 8000:8000 currency-converter-app
@@ -126,8 +128,10 @@ docker run -d -p 8000:8000 currency-converter-app
 Access:
 
 ```
-http://localhost:8000/
+http://<Your-Public-IP>:8000/
 ```
+
+(For AWS server or any cloud deployment)
 
 ---
 
@@ -176,17 +180,10 @@ CurrencyConversion/
 
 ### 📌 CI Pipeline Flow:
 
-1. **Checkout Code:**
-   Pull code from GitHub.
-
-2. **Build Docker Image:**
-   Create Docker image tagged as `currency-converter-app`.
-
-3. **Run Trivy Image Scan:**
-   Trivy scans for **CRITICAL and HIGH vulnerabilities**.
-
-4. **Push to Docker Hub (only if Trivy scan passes):**
-   Image is pushed only if Trivy scan **does not find any Critical/High CVEs**.
+1. Checkout Code
+2. Build Docker Image
+3. Run Trivy Image Scan
+4. Push to Docker Hub (only if Trivy passes)
 
 ---
 
@@ -196,15 +193,9 @@ GitHub → Actions → Docker CI Build and Push → Run Workflow → Select Bran
 
 ---
 
-## ✅ 4. Helm Chart Deployment
+## ✅ 4. Helm Chart Information
 
-### 📌 Prerequisites:
-
-| Requirement        | Purpose                    |
-| ------------------ | -------------------------- |
-| Kubernetes Cluster | Deployment target (EKS)    |
-| kubectl            | Interact with EKS          |
-| Helm               | Kubernetes package manager |
+This project includes a **Helm Chart** for Kubernetes deployment.
 
 ---
 
@@ -223,35 +214,11 @@ CurrencyConversion/
 
 ---
 
-### 📌 Deployment Notes:
+### 📌 Notes:
 
 * Deployment Type: **NodePort**
-* Cluster: **EKS (us-east-1)**
-* Helm Chart Location: **`helm/currency-converter/`**
-
----
-
-### 📌 Deploy Manually (Optional):
-
-```bash
-cd helm/currency-converter
-helm install currency-converter .
-```
-
----
-
-### 📌 Access After Helm Deployment:
-
-```bash
-kubectl get nodes -o wide
-kubectl get svc currency-converter
-```
-
-Access app at:
-
-```
-http://<EC2_NODE_PUBLIC_IP>:<NodePort>/
-```
+* Cluster: **AWS EKS (us-east-1)**
+* Helm Chart Path: `helm/currency-converter/`
 
 ---
 
@@ -259,15 +226,15 @@ http://<EC2_NODE_PUBLIC_IP>:<NodePort>/
 
 ### 📌 Prerequisites:
 
-| Requirement              | Purpose                       |
-| ------------------------ | ----------------------------- |
-| AWS Account              | Deploy infrastructure         |
-| AWS CLI                  | Terraform AWS authentication  |
-| Terraform                | Infrastructure provisioning   |
-| kubectl                  | Interact with EKS             |
-| Helm                     | Deploy app                    |
-| EC2 Key Pair             | For EKS Node Group SSH access |
-| (Optional) S3 + DynamoDB | Remote Terraform state        |
+| Requirement              | Purpose                                            |
+| ------------------------ | -------------------------------------------------- |
+| AWS Account              | Deploy infrastructure                              |
+| AWS CLI                  | Terraform AWS authentication                       |
+| Terraform                | Infrastructure provisioning                        |
+| kubectl                  | Interact with EKS                                  |
+| Helm                     | Deploy app                                         |
+| EC2 Key Pair             | For EKS Node Group SSH access (Name: **EKS-NODE**) |
+| (Optional) S3 + DynamoDB | Remote Terraform state                             |
 
 ---
 
@@ -279,9 +246,9 @@ http://<EC2_NODE_PUBLIC_IP>:<NodePort>/
 
 ### 📌 Important Note About EC2 Key Pair:
 
-✅ Make sure you already have an **existing EC2 key pair named `EKS-NODE`**, and the corresponding **`.pem` file is available locally**.
+✅ Make sure you already have an existing EC2 key pair named **`EKS-NODE`**, and that the corresponding `.pem` file is available locally.
 
-This key pair will be used by the EKS node group during provisioning.
+This key pair will be used by the EKS node group during Terraform provisioning.
 
 ---
 
@@ -306,34 +273,26 @@ CurrencyConversion/
 
 ### 📌 Deployment Steps:
 
----
-
-✅ **Step 1: Configure AWS CLI:**
+✅ Step 1: Configure AWS CLI:
 
 ```bash
 aws configure
 ```
 
----
-
-✅ **Step 2: Initialize Terraform:**
+✅ Step 2: Initialize Terraform:
 
 ```bash
 cd terraform
 terraform init
 ```
 
----
-
-✅ **Step 3: Validate Terraform:**
+✅ Step 3: Validate Terraform:
 
 ```bash
 terraform validate
 ```
 
----
-
-✅ **Step 4: Apply Terraform:**
+✅ Step 4: Apply Terraform:
 
 ```bash
 terraform apply
@@ -350,7 +309,7 @@ Terraform will:
 
 ---
 
-✅ **Step 5: Download kubeconfig (us-east-1):**
+✅ Step 5: Download kubeconfig (us-east-1):
 
 ```bash
 aws eks update-kubeconfig --region us-east-1 --name <your-eks-cluster-name>
@@ -362,18 +321,14 @@ Example:
 aws eks update-kubeconfig --region us-east-1 --name prod-eks-cluster
 ```
 
----
-
-✅ **Step 6: Validate EKS Cluster Access:**
+✅ Step 6: Validate EKS Cluster Access:
 
 ```bash
 kubectl get nodes
 kubectl get pods --all-namespaces
 ```
 
----
-
-✅ **Step 7: Access NodePort Service:**
+✅ Step 7: Access NodePort Service:
 
 ```bash
 kubectl get svc currency-converter
@@ -385,11 +340,7 @@ Then open in browser:
 http://<EC2_NODE_PUBLIC_IP>:<NodePort>/
 ```
 
----
-
-✅ **Step 8: (Optional) Remote State Backend:**
-
-Example `backend.tf`:
+✅ Step 8: (Optional) Remote State Backend Example:
 
 ```hcl
 terraform {
@@ -404,15 +355,114 @@ terraform {
 
 ---
 
+## ✅ 6. Jenkinsfile Overview (Jenkins CI Pipeline)
+
+### 📌 Folder Structure:
+
+```
+CurrencyConversion/
+├── Jenkinsfile
+├── vars/
+│   └── buildAndPush.groovy
+└── Jenkinsfile_sharedlibrary
+```
+
+---
+
+### 📌 Jenkins Pipeline Stages (Jenkinsfile):
+
+| Stage            | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
+| Checkout         | Clone Git repository                                |
+| Docker Build     | Build Docker image                                  |
+| Trivy Image Scan | Scan Docker image for Critical/High vulnerabilities |
+| Docker Push      | Push image to Docker Hub                            |
+| Health Check     | Test container (curl check)                         |
+| Cleanup          | Stop container and clean Docker images/containers   |
+
+---
+
+### 📌 How to Use the Jenkinsfile:
+
+* Create a **Jenkins Pipeline job**.
+* Point the job to this Git repository.
+* Use the provided `Jenkinsfile` from project root.
+* Jenkins agent should have:
+
+  * Docker installed
+  * Trivy installed
+  * Docker Hub credentials configured (`dockercreds`)
+
+---
+
+### ✅ 6.1 Jenkins Shared Library Example 
+
+For visibility and demo purposes, the **shared library code and its calling Jenkinsfile_sharedlibrary** are included inside the repository.
+
+---
+
+### 📌 Shared Library Folder Structure:
+
+```
+CurrencyConversion/
+├── vars/
+│   └── buildAndPush.groovy     # Reusable shared library logic
+└── Jenkinsfile_sharedlibrary   # Pipeline using shared library
+```
+
+---
+
+### 📌 Jenkins Setup for Shared Library:
+
+You **must configure the Shared Library** in **Jenkins Global Configuration** before using `Jenkinsfile_sharedlibrary`.
+
+#### Steps to Configure in Jenkins:
+
+1. Go to:
+   **Manage Jenkins → Configure System → Global Pipeline Libraries**
+
+2. Add a new Shared Library:
+
+| Field                  | Value                                           |
+| ---------------------- | ----------------------------------------------- |
+| Library Name           | Example: `jenkins-shared-lib`                   |
+| Default Version        | Example: `main`                                 |
+| Retrieval Method       | Modern SCM                                      |
+| SCM                    | Git                                             |
+| Project Repository URL | (Point to this repo for demonstration purposes) |
+
+---
+
+### 📌 Jenkinsfile\_sharedlibrary Usage Example:
+
+```groovy
+@Library('jenkins-shared-lib') _
+
+pipeline {
+    agent any
+    stages {
+        stage('Build and Push') {
+            steps {
+                buildAndPush()
+            }
+        }
+    }
+}
+```
+
+---
+
 ## ✅ Summary:
 
-| Section           | Purpose                                 |
-| ----------------- | --------------------------------------- |
-| Local Python Run  | Local FastAPI testing                   |
-| Docker Build      | Containerization                        |
-| GitHub Actions CI | Docker Build → Trivy Scan → Docker Push |
-| Helm              | Kubernetes deployment spec              |
-| Terraform + Helm  | Full Infra and Deployment on AWS        |
+| Section                | Purpose                                       |
+| ---------------------- | --------------------------------------------- |
+| Local Python Run       | Local FastAPI testing                         |
+| Docker Build           | Containerization                              |
+| GitHub Actions CI      | Build → Trivy → Push                          |
+| Helm                   | Helm deployment definitions                   |
+| Terraform + Helm       | Full Infra & App Deployment                   |
+| Jenkins CI             | Build → Trivy → Push → Health Check → Cleanup |
+| Jenkins Shared Library | Example Shared Library-based pipeline         |
 
 ---
 

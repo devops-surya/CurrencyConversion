@@ -1,0 +1,61 @@
+@Library('jenkins-shared-lib') _
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'tejamvs/currency-conversion:latest'
+        DOCKER_CREDS_ID = 'dockercreds'
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/devops-surya/CurrencyConversion.git'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    dockerUtils.buildAndPushDockerImage(env.IMAGE_NAME, env.DOCKER_CREDS_ID)
+                }
+            }
+        }
+
+        stage('Trivy Image Scan') {
+            steps {
+                script {
+                    echo 'Running Trivy vulnerability scan...'
+                    sh """
+                        trivy image --severity CRITICAL,HIGH --exit-code 1 ${env.IMAGE_NAME}
+                    """
+                }
+            }
+        }
+
+        stage('Run Container and Health Check') {
+            steps {
+                script {
+                    echo 'Running container and performing health check...'
+                    sh """
+                        docker run -d --name currency_app -p 8000:8000 ${env.IMAGE_NAME}
+                        sleep 5
+                        curl -f http://localhost:8000/ || (echo "Health check failed!" && exit 1)
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up containers and images...'
+            sh '''
+                docker rm -f currency_app || true
+                docker rmi $IMAGE_NAME || true
+            '''
+        }
+    }
+}
+
