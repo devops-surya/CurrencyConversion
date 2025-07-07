@@ -14,7 +14,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 
 # ✅ Mandatory API Key (Set your key here)
-API_KEY = "--------"  # Replace with your exchangerate.host API key
+API_KEY = "--------"  # Replace with your exchangerate.host API key ,for practice only ,  not recommended in production
 
 
 @app.get("/", response_class=HTMLResponse)
